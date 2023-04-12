@@ -11,6 +11,7 @@ class InjectionConfig {
     required this.target,
     required this.factory,
   })  : isSingleton = singleton,
+        factoryParameters = _collectParameters(factory),
         assert(factory is ConstructorElement ||
             factory is MethodElement ||
             factory is FunctionElement) {
@@ -18,6 +19,12 @@ class InjectionConfig {
       throw InvalidGenerationSourceError(
         "`${target.element!.name}` has to be public.",
         element: target.element,
+      );
+    }
+    if (singleton && factoryParameters.isNotEmpty) {
+      throw InvalidGenerationSourceError(
+        "Singleton does not support parameters.",
+        element: factory,
       );
     }
   }
@@ -118,9 +125,13 @@ class InjectionConfig {
   final bool isSingleton;
   final DartType target;
   final FunctionTypedElement factory;
+  final List<DartType> factoryParameters;
 
   List<DartType> get dependencies {
-    return factory.parameters.map((e) => e.type).toList();
+    return factory.parameters
+        .where((e) => !e.hasParam())
+        .map((e) => e.type)
+        .toList();
   }
 
   Set<String> get imports {
@@ -143,13 +154,32 @@ class InjectionConfig {
     }
     return result;
   }
+
+  static List<DartType> _collectParameters(FunctionTypedElement factory) {
+    final params = <DartType>[];
+    for (final param in factory.parameters) {
+      if (param.hasParam()) {
+        params.add(param.type);
+      }
+    }
+    if (params.length > 2) {
+      throw InvalidGenerationSourceError(
+        "Factory method has more than 2 parameters annotated with `@param`.",
+        element: factory,
+      );
+    }
+    return params;
+  }
 }
 
 const _bindsAnnotationChecker = TypeChecker.fromRuntime(Binds);
 const _singletonAnnotationChecker = TypeChecker.fromRuntime(Singleton);
+const _paramAnnotationChecker = TypeChecker.fromRuntime(Param);
 
-extension on Element {
+extension ElementExt on Element {
   bool hasSingleton() => _singletonAnnotationChecker.hasAnnotationOfExact(this);
+
+  bool hasParam() => _paramAnnotationChecker.hasAnnotationOfExact(this);
 
   ClassElement? findBinds() {
     final annotation = _bindsAnnotationChecker.firstAnnotationOfExact(this);

@@ -1,0 +1,19 @@
+name: inject_generator_example
+description: A sample command-line application.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: ^2.19.4
+
+dependencies:
+  get_it: any
+  inject:
+    git: 'https://github.com/lamtx/inject.git'
+
+dev_dependencies:
+  build_runner: ^2.0.0
+  inject_generator:
+    path: '..'
+  source_gen_test: ^1.0.0
+  test: ^1.21.0

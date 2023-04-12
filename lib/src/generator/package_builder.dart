@@ -71,7 +71,7 @@ class PackageBuilder implements Builder {
       for (final dependency in config.dependencies) {
         if (!targets.contains(dependency)) {
           throw InvalidGenerationSourceError(
-            "`${config.target}` depends on `$dependency` but it is unresolvable.",
+            "`${config.target}` depends on `$dependency` which is unresolvable.",
             element: config.factory,
           );
         }
@@ -83,6 +83,7 @@ class PackageBuilder implements Builder {
     var formattedOutput = output;
     try {
       formattedOutput = _formatter.format(output);
+      // ignore: avoid_catches_without_on_clauses
     } catch (e, stack) {
       log.severe(
         '''
@@ -170,18 +171,47 @@ source formatter.''',
 
 extension on InjectionConfig {
   String generateCode() {
-    final registerMethod =
-        isSingleton ? "registerLazySingleton" : "registerFactory";
-    return "..$registerMethod<${_generateTarget()}>(${_generateFactory()})";
+    return "..${_generateRegister()}<${_generateTarget()}>(${_generateFactory()})";
+  }
+
+  String _generateRegister() {
+    if (isSingleton) {
+      return "registerLazySingleton";
+    } else if (factoryParameters.isNotEmpty) {
+      return "registerFactoryParam";
+    } else {
+      return "registerFactory";
+    }
   }
 
   String _generateTarget() {
-    return target.getDisplayString(withNullability: true);
+    final sb = StringBuffer()
+      ..write(target.getDisplayString(withNullability: true));
+    if (factoryParameters.isNotEmpty) {
+      for (final p in factoryParameters) {
+        sb
+          ..write(", ")
+          ..write(p.getDisplayString(withNullability: true));
+      }
+      if (factoryParameters.length == 1) {
+        sb.write(", void");
+      }
+    }
+    return sb.toString();
   }
 
   String _generateFactory() {
     final sb = StringBuffer();
+    var pIndex = 0;
     for (final e in factory.parameters) {
+      final isFactoryParam = e.hasParam();
+      final String arg;
+      if (isFactoryParam) {
+        pIndex += 1;
+        arg = "p$pIndex";
+      } else {
+        arg = "T()";
+      }
       if (e.isOptional) {
         throw InvalidGenerationSourceError("optional unsupported");
       }
@@ -189,12 +219,12 @@ extension on InjectionConfig {
         sb.write(", ");
       }
       if (e.isPositional) {
-        sb.write("T()");
+        sb.write(arg);
       } else {
         sb
           ..write(e.name)
           ..write(": ")
-          ..write("T()");
+          ..write(arg);
       }
     }
     if (factory is ConstructorElement) {
@@ -205,6 +235,7 @@ extension on InjectionConfig {
         methodName: factory.name ?? "",
         params: sb,
         $const: constructor.isConst,
+        hasFactoryParam: factoryParameters.isNotEmpty,
       );
     } else if (factory is MethodElement) {
       final method = factory as MethodElement;
@@ -214,6 +245,7 @@ extension on InjectionConfig {
         methodName: method.name,
         params: sb,
         static: method.isStatic,
+        hasFactoryParam: factoryParameters.isNotEmpty,
         $const:
             !method.isStatic && (receiver.unnamedConstructor?.isConst ?? false),
       );
@@ -222,6 +254,7 @@ extension on InjectionConfig {
         className: null,
         methodName: factory.name!,
         params: sb,
+        hasFactoryParam: factoryParameters.isNotEmpty,
       );
     } else {
       throw UnsupportedError("Unsupported element ${factory.runtimeType}");
@@ -232,10 +265,11 @@ extension on InjectionConfig {
     required String? className,
     required String methodName,
     required StringBuffer params,
+    required bool hasFactoryParam,
     bool $const = false,
     bool static = true,
   }) {
-    final tearable = !$const && static && params.isEmpty;
+    final tearable = !$const && static && params.isEmpty && !hasFactoryParam;
     final modifier = $const ? "const " : "";
     final receiver = className == null
         ? ""
@@ -246,6 +280,8 @@ extension on InjectionConfig {
     final dot = method.isEmpty || receiver.isEmpty ? "" : ".";
     return tearable
         ? "$receiver$dot$method"
-        : "() => $modifier$receiver$dot$method($params)";
+        : hasFactoryParam
+            ? "(p1, p2) => $modifier$receiver$dot$method($params)"
+            : "() => $modifier$receiver$dot$method($params)";
   }
 }
