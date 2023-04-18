@@ -1,5 +1,6 @@
 import 'package:inject/inject.dart';
 
+import 'models/customer.dart';
 import 'models/user.dart';
 
 @module

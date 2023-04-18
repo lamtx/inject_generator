@@ -1,4 +1,7 @@
 import 'package:inject/inject.dart';
+import 'package:inject_generator_example/src/models/mask.dart';
+
+import 'src/models/customer.dart';
 
 @inject
 class DataSource {
@@ -34,8 +37,15 @@ class LoginManagerImpl implements LoginManager {}
 
 @inject
 class UserState {
-  UserState(@param this.id, this._userRepository);
+  UserState(
+    @param this.id,
+    @param this.asyncLoader,
+    this.ownerCustomer,
+    this._userRepository,
+  );
 
   final int id;
+  final List<Mask> asyncLoader;
+  final Customer ownerCustomer;
   final UserRepository _userRepository;
 }

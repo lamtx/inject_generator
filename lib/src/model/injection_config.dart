@@ -135,22 +135,24 @@ class InjectionConfig {
   }
 
   Set<String> get imports {
-    final result = <String>{
-      target.element!.librarySource!.uri.toString(),
-    };
-    if (target is ParameterizedType) {
-      final paramType = target as ParameterizedType;
-      for (final param in paramType.typeArguments) {
-        result.add(param.element!.librarySource!.uri.toString());
-      }
+    final result = <String>{};
+    for (final import in target.collectImports()) {
+      result.add(import);
     }
-    if (factory is MethodElement || factory is ConstructorElement) {
+    if (factory is MethodElement) {
+      // import the class of this method (static or not)
       result.add((factory.enclosingElement! as ClassElement)
           .librarySource
           .uri
           .toString());
     } else if (factory is FunctionElement) {
+      // import top level function
       result.add(factory.librarySource.uri.toString());
+    }
+    for (final param in factoryParameters) {
+      for (final import in param.collectImports()) {
+        result.add(import);
+      }
     }
     return result;
   }
