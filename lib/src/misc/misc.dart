@@ -35,13 +35,20 @@ extension DartTypeExt on DartType {
 
   Iterable<String> collectImports() sync* {
     if (!isDartCore) {
-      yield element!.librarySource!.uri.toString();
+      final source = element?.librarySource;
+      if (source != null) {
+        yield source.uri.toString();
+      }
     }
-    final target = this;
-    final paramType = target as ParameterizedType;
-    for (final param in paramType.typeArguments) {
-      if (!param.isDartCore) {
-        yield param.element!.librarySource!.uri.toString();
+    final paramType = this;
+    if (paramType is ParameterizedType) {
+      for (final param in paramType.typeArguments) {
+        if (!param.isDartCore) {
+          final source = param.element?.librarySource;
+          if (source != null) {
+            yield source.uri.toString();
+          }
+        }
       }
     }
   }
