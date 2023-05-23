@@ -19,7 +19,7 @@ void setupDependencies(GetIt instance) {
     ..registerFactoryParam<UserState, int, List<Mask>>(
         (p1, p2) => UserState(p1, p2, T(), T()))
     ..registerFactory<DataSource2>(() => DataSource2(T()))
+    ..registerFactory<Customer>(provideCustomer)
     ..registerLazySingleton<List<User>>(
-        () => const AppModule().provideUserBuilder())
-    ..registerFactory<Customer>(provideCustomer);
+        () => const AppModule().provideUserBuilder());
 }
