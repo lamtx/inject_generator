@@ -10,9 +10,10 @@ import 'package:source_gen/source_gen.dart';
 import '../model/injection_config.dart';
 
 class PackageBuilder implements Builder {
-  const PackageBuilder();
+  const PackageBuilder({
+    required this.outputFile,
+  });
 
-  static const _outputFile = "setup_dependencies.dart";
   static final _inputFiles = Glob('lib/**');
   static const _injectTypeChecker = TypeChecker.fromRuntime(Inject);
   static const _moduleTypeChecker = TypeChecker.fromRuntime(Module);
@@ -24,10 +25,11 @@ class PackageBuilder implements Builder {
   ]);
   static final _formatter =
       DartFormatter(fixes: [StyleFix.singleCascadeStatements]);
+  final String outputFile;
 
   @override
-  Map<String, List<String>> get buildExtensions => const {
-        r'$lib$': [_outputFile]
+  Map<String, List<String>> get buildExtensions => {
+        r'$lib$': [outputFile]
       };
 
   @override
@@ -90,7 +92,7 @@ class PackageBuilder implements Builder {
 An error `${e.runtimeType}` occurred while formatting the generated source for
   `${buildStep.inputId.uri}`
 which was output to
-  `${_outputFile}`.
+  `${outputFile}`.
 This may indicate an issue in the generator, the input source code, or in the
 source formatter.''',
         e,
@@ -98,8 +100,8 @@ source formatter.''',
       );
     }
 
-    final outputFile = AssetId(buildStep.inputId.package, 'lib/$_outputFile');
-    await buildStep.writeAsString(outputFile, formattedOutput);
+    final outputAssetId = AssetId(buildStep.inputId.package, 'lib/$outputFile');
+    await buildStep.writeAsString(outputAssetId, formattedOutput);
   }
 
   Iterable<InjectionConfig> _analyzeLibrary(LibraryReader library) sync* {

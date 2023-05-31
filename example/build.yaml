@@ -1,0 +1,6 @@
+targets:
+  $default:
+    builders:
+      inject_generator:inject:
+        options:
+          output-file: 'app/setup_dependencies.dart'

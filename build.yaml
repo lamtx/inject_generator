@@ -3,7 +3,10 @@ builders:
   inject:
     import: "package:inject_generator/inject_generator.dart"
     builder_factories: [ "injectBuilder" ]
-    build_extensions: { r'$lib$': [ "setup_dependencies.dart" ] }
+    build_extensions: { r'$lib$': [ ".dart" ] }
     auto_apply: dependents
-    build_to: cache
+    build_to: source
     applies_builders: [ "source_gen" ]
+    defaults:
+      options:
+        output-file: 'setup_dependencies.dart'
