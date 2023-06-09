@@ -3,4 +3,4 @@ targets:
     builders:
       inject_generator:inject:
         options:
-          output-file: 'app/setup_dependencies.dart'
+          output-file: 'src/app/setup_dependencies.dart'

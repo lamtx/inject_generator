@@ -92,7 +92,7 @@ class PackageBuilder implements Builder {
 An error `${e.runtimeType}` occurred while formatting the generated source for
   `${buildStep.inputId.uri}`
 which was output to
-  `${outputFile}`.
+  `$outputFile`.
 This may indicate an issue in the generator, the input source code, or in the
 source formatter.''',
         e,
@@ -154,19 +154,20 @@ source formatter.''',
     for (final config in configs) {
       imports.addAll(config.imports);
     }
-    final sb = StringBuffer();
-    sb.writeln("import 'package:get_it/get_it.dart';");
+    final sb = StringBuffer()..writeln("import 'package:get_it/get_it.dart';");
     for (final import in imports) {
       sb.writeln("import '$import';");
     }
-    sb.writeln("void setupDependencies(GetIt instance) {");
-    sb.writeln("final T = instance.get;");
-    sb.writeln("instance");
+    sb
+      ..writeln("void setupDependencies(GetIt instance) {")
+      ..writeln("final T = instance.get;")
+      ..writeln("instance");
     for (final config in configs) {
       sb.writeln(config.generateCode());
     }
-    sb.writeln(";");
-    sb.writeln("}");
+    sb
+      ..writeln(";")
+      ..writeln("}");
     return sb.toString();
   }
 }

@@ -123,8 +123,15 @@ class InjectionConfig {
   }
 
   final bool isSingleton;
+
+  /// The dependency.
   final DartType target;
+
+  /// The element to create [target], accepts [ConstructorElement],
+  /// [MethodElement] or [FunctionElement]
   final FunctionTypedElement factory;
+
+  /// The parameters of [factory]
   final List<DartType> factoryParameters;
 
   List<DartType> get dependencies {
@@ -148,6 +155,12 @@ class InjectionConfig {
     } else if (factory is FunctionElement) {
       // import top level function
       result.add(factory.librarySource.uri.toString());
+    } else if (factory is ConstructorElement) {
+      // import if the class of this constructor is different from the target class
+      final clazz = factory.enclosingElement! as ClassElement;
+      if (clazz.thisType != target) {
+        result.add(clazz.librarySource.uri.toString());
+      }
     }
     for (final param in factoryParameters) {
       for (final import in param.collectImports()) {
