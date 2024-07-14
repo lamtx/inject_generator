@@ -6,6 +6,7 @@
 /// This library is **not** intended to be imported by typical end-users unless
 /// you are creating a custom compilation pipeline. See documentation for
 /// details, and `build.yaml` for how these builders are configured by default.
+library;
 
 import 'package:build/build.dart';
 
