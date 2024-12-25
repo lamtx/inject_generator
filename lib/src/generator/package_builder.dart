@@ -24,7 +24,7 @@ class PackageBuilder implements Builder {
     _providesTypeChecker,
   ]);
   static final _formatter =
-      DartFormatter(fixes: [StyleFix.singleCascadeStatements]);
+      DartFormatter(languageVersion: DartFormatter.latestLanguageVersion);
   final String outputFile;
 
   @override
@@ -54,9 +54,7 @@ class PackageBuilder implements Builder {
           );
         }
         final duplicatedName = targets.firstWhereOrNull(
-          (e) =>
-              e.getDisplayString(withNullability: true) ==
-              generated.target.getDisplayString(withNullability: true),
+          (e) => e.getDisplayString() == generated.target.getDisplayString(),
         );
         if (duplicatedName != null) {
           throw InvalidGenerationSourceError(
@@ -188,13 +186,12 @@ extension on InjectionConfig {
   }
 
   String _generateTarget() {
-    final sb = StringBuffer()
-      ..write(target.getDisplayString(withNullability: true));
+    final sb = StringBuffer()..write(target.getDisplayString());
     if (factoryParameters.isNotEmpty) {
       for (final p in factoryParameters) {
         sb
           ..write(", ")
-          ..write(p.getDisplayString(withNullability: true));
+          ..write(p.getDisplayString());
       }
       if (factoryParameters.length == 1) {
         sb.write(", void");
@@ -232,7 +229,7 @@ extension on InjectionConfig {
     }
     if (factory is ConstructorElement) {
       final constructor = factory as ConstructorElement;
-      final receiver = constructor.enclosingElement;
+      final receiver = constructor.enclosingElement3;
       return _combine(
         className: receiver.name,
         methodName: factory.name ?? "",
@@ -242,7 +239,7 @@ extension on InjectionConfig {
       );
     } else if (factory is MethodElement) {
       final method = factory as MethodElement;
-      final receiver = factory.enclosingElement! as ClassElement;
+      final receiver = factory.enclosingElement3! as ClassElement;
       return _combine(
         className: receiver.name,
         methodName: method.name,

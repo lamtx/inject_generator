@@ -101,7 +101,7 @@ class InjectionConfig {
         element: moduleClass,
       );
     }
-    if (method.returnType.isDartCoreNull || method.returnType.isVoid) {
+    if (method.returnType.isDartCoreNull || method.returnType is VoidType) {
       throw InvalidGenerationSourceError(
         "The return type of provider method cannot be void or null.",
         element: method,
@@ -148,7 +148,7 @@ class InjectionConfig {
     }
     if (factory is MethodElement) {
       // import the class of this method (static or not)
-      result.add((factory.enclosingElement! as ClassElement)
+      result.add((factory.enclosingElement3! as ClassElement)
           .librarySource
           .uri
           .toString());
@@ -157,7 +157,7 @@ class InjectionConfig {
       result.add(factory.librarySource.uri.toString());
     } else if (factory is ConstructorElement) {
       // import if the class of this constructor is different from the target class
-      final clazz = factory.enclosingElement! as ClassElement;
+      final clazz = factory.enclosingElement3! as ClassElement;
       if (clazz.thisType != target) {
         result.add(clazz.librarySource.uri.toString());
       }
