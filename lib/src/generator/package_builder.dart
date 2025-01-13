@@ -70,10 +70,11 @@ class PackageBuilder implements Builder {
     for (final config in configs) {
       for (final dependency in config.dependencies) {
         if (!targets.contains(dependency)) {
-          throw InvalidGenerationSourceError(
-            "`${config.target}` depends on `$dependency` which is unresolvable.",
-            element: config.factory,
-          );
+          // throw InvalidGenerationSourceError(
+          log.warning(
+              "`${config.target}` depends on `$dependency` which is unresolvable.");
+          // element: config.factory,
+          // );
         }
       }
     }
@@ -234,7 +235,7 @@ extension on InjectionConfig {
         className: receiver.name,
         methodName: factory.name ?? "",
         params: sb,
-        $const: constructor.isConst,
+        $const: constructor.isConst && factoryParameters.isEmpty,
         hasFactoryParam: factoryParameters.isNotEmpty,
       );
     } else if (factory is MethodElement) {
