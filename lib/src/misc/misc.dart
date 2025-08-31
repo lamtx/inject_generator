@@ -9,7 +9,7 @@ extension ClassElementExt on ClassElement {
     final cons = constructors;
     if (cons.length == 1) {
       final constructor = cons.first;
-      return constructor.parameters.isEmpty && constructor.name.isEmpty;
+      return constructor.formalParameters.isEmpty && constructor.name == "new";
     } else {
       return false;
     }
@@ -35,18 +35,18 @@ extension DartTypeExt on DartType {
 
   Iterable<String> collectImports() sync* {
     if (!isDartCore) {
-      final source = element?.librarySource;
+      final source = element?.library?.uri;
       if (source != null) {
-        yield source.uri.toString();
+        yield source.toString();
       }
     }
     final paramType = this;
     if (paramType is ParameterizedType) {
       for (final param in paramType.typeArguments) {
         if (!param.isDartCore) {
-          final source = param.element?.librarySource;
+          final source = param.element?.library?.uri;
           if (source != null) {
-            yield source.uri.toString();
+            yield source.toString();
           }
         }
       }

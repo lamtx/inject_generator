@@ -10,7 +10,7 @@ import '../repository/log_in_repository.dart';
 import '../repository/user_repository.dart';
 import '../service/cloud.dart';
 import '../service/data_source.dart';
-import '../testing/CloudImpl.dart';
+import '../testing/cloud_impl.dart';
 import '../ui/user_state.dart';
 
 void setupDependencies(GetIt instance) {

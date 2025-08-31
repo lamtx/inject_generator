@@ -14,7 +14,7 @@ class InjectionConfig {
         factoryParameters = _collectParameters(factory),
         assert(factory is ConstructorElement ||
             factory is MethodElement ||
-            factory is FunctionElement) {
+            factory is TopLevelFunctionElement) {
     if (!target.element!.isPublic) {
       throw InvalidGenerationSourceError(
         "`${target.element!.name}` has to be public.",
@@ -128,14 +128,14 @@ class InjectionConfig {
   final DartType target;
 
   /// The element to create [target], accepts [ConstructorElement],
-  /// [MethodElement] or [FunctionElement]
+  /// [MethodElement] or [TopLevelFunctionElement]
   final FunctionTypedElement factory;
 
   /// The parameters of [factory]
   final List<DartType> factoryParameters;
 
   List<DartType> get dependencies {
-    return factory.parameters
+    return factory.formalParameters
         .where((e) => !e.hasParam())
         .map((e) => e.type)
         .toList();
@@ -148,18 +148,16 @@ class InjectionConfig {
     }
     if (factory is MethodElement) {
       // import the class of this method (static or not)
-      result.add((factory.enclosingElement3! as ClassElement)
-          .librarySource
-          .uri
-          .toString());
-    } else if (factory is FunctionElement) {
+      result.add(
+          (factory.enclosingElement! as ClassElement).library.uri.toString());
+    } else if (factory is TopLevelFunctionElement) {
       // import top level function
-      result.add(factory.librarySource.uri.toString());
+      result.add(factory.library.uri.toString());
     } else if (factory is ConstructorElement) {
       // import if the class of this constructor is different from the target class
-      final clazz = factory.enclosingElement3! as ClassElement;
+      final clazz = factory.enclosingElement! as ClassElement;
       if (clazz.thisType != target) {
-        result.add(clazz.librarySource.uri.toString());
+        result.add(clazz.library.uri.toString());
       }
     }
     for (final param in factoryParameters) {
@@ -172,7 +170,7 @@ class InjectionConfig {
 
   static List<DartType> _collectParameters(FunctionTypedElement factory) {
     final params = <DartType>[];
-    for (final param in factory.parameters) {
+    for (final param in factory.formalParameters) {
       if (param.hasParam()) {
         params.add(param.type);
       }
@@ -187,9 +185,9 @@ class InjectionConfig {
   }
 }
 
-const _bindsAnnotationChecker = TypeChecker.fromRuntime(Binds);
-const _singletonAnnotationChecker = TypeChecker.fromRuntime(Singleton);
-const _paramAnnotationChecker = TypeChecker.fromRuntime(Param);
+const _bindsAnnotationChecker = TypeChecker.typeNamed(Binds);
+const _singletonAnnotationChecker = TypeChecker.typeNamed(Singleton);
+const _paramAnnotationChecker = TypeChecker.typeNamed(Param);
 
 extension ElementExt on Element {
   bool hasSingleton() => _singletonAnnotationChecker.hasAnnotationOfExact(this);

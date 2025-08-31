@@ -16,6 +16,6 @@ import 'src/generator/package_builder.dart';
 /// `go_router`.
 ///
 /// Not meant to be invoked by hand-authored code.
-Builder injectBuilder(BuilderOptions options) =>  PackageBuilder(
-  outputFile: options.config['output-file'] as String,
-);
+Builder injectBuilder(BuilderOptions options) => PackageBuilder(
+      outputFile: options.config['output-file'] as String,
+    );

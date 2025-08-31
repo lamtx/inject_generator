@@ -15,9 +15,9 @@ class PackageBuilder implements Builder {
   });
 
   static final _inputFiles = Glob('lib/**');
-  static const _injectTypeChecker = TypeChecker.fromRuntime(Inject);
-  static const _moduleTypeChecker = TypeChecker.fromRuntime(Module);
-  static const _providesTypeChecker = TypeChecker.fromRuntime(Provides);
+  static const _injectTypeChecker = TypeChecker.typeNamed(Inject);
+  static const _moduleTypeChecker = TypeChecker.typeNamed(Module);
+  static const _providesTypeChecker = TypeChecker.typeNamed(Provides);
   static const _typeChecker = TypeChecker.any([
     _injectTypeChecker,
     _moduleTypeChecker,
@@ -58,7 +58,7 @@ class PackageBuilder implements Builder {
         );
         if (duplicatedName != null) {
           throw InvalidGenerationSourceError(
-            "Class with name `$duplicatedName` is defined in both library: `${duplicatedName.element!.librarySource}` and `${generated.target.element!.librarySource}`.\n"
+            "Class with name `$duplicatedName` is defined in both library: `${duplicatedName.element!.library!.uri}` and `${generated.target.element!.library!.uri}`.\n"
             "Duplicated name in different libraries can cause imports conflict.",
             element: generated.target.element,
           );
@@ -126,7 +126,7 @@ source formatter.''',
           );
         }
       } else if (annotation.instanceOf(_providesTypeChecker)) {
-        if (element is FunctionElement) {
+        if (element is TopLevelFunctionElement) {
           yield InjectionConfig.method(null, element);
         } else {
           throw InvalidGenerationSourceError(
@@ -135,7 +135,7 @@ source formatter.''',
           );
         }
       } else {
-        throw UnsupportedError("Unknown element ${element.declaration}");
+        throw UnsupportedError("Unknown element ${element.displayName}");
       }
     }
   }
@@ -204,7 +204,7 @@ extension on InjectionConfig {
   String _generateFactory() {
     final sb = StringBuffer();
     var pIndex = 0;
-    for (final e in factory.parameters) {
+    for (final e in factory.formalParameters) {
       final isFactoryParam = e.hasParam();
       final String arg;
       if (isFactoryParam) {
@@ -230,7 +230,7 @@ extension on InjectionConfig {
     }
     if (factory is ConstructorElement) {
       final constructor = factory as ConstructorElement;
-      final receiver = constructor.enclosingElement3;
+      final receiver = constructor.enclosingElement;
       return _combine(
         className: receiver.name,
         methodName: factory.name ?? "",
@@ -240,17 +240,17 @@ extension on InjectionConfig {
       );
     } else if (factory is MethodElement) {
       final method = factory as MethodElement;
-      final receiver = factory.enclosingElement3! as ClassElement;
+      final receiver = factory.enclosingElement! as ClassElement;
       return _combine(
         className: receiver.name,
-        methodName: method.name,
+        methodName: method.name!,
         params: sb,
         static: method.isStatic,
         hasFactoryParam: factoryParameters.isNotEmpty,
         $const:
             !method.isStatic && (receiver.unnamedConstructor?.isConst ?? false),
       );
-    } else if (factory is FunctionElement) {
+    } else if (factory is TopLevelFunctionElement) {
       return _combine(
         className: null,
         methodName: factory.name!,
